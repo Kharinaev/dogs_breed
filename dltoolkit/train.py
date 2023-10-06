@@ -1,12 +1,6 @@
-# import torch
-# from torch import nn
 import time
 
 
-def some_bad_func(abs: str) -> str:
-    return abs + " "
-
-
-if __name__ == "main":
+if __name__ == "__main__":
     time.sleep(2)
     print("Training done")
