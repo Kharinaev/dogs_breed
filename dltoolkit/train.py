@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     # Download data
     dataset_path = "data/Stanford_Dogs_256/"
-    csv_url = "https://drive.google.com/uc?id=1lWtrHY8v3QE5zg6-CzSFiY1uAKBFzadI"
+    csv_url = "https://drive.google.com/uc?id=12jKVnBTYlM5XtWeGgUXG-_pDwXcaRP5T"
     zip_url = "https://drive.google.com/uc?id=1d_0lM9PNWxH3IAkmgSXcDqBb92gec3Gd"
     csv_output = dataset_path + "dataset_info.csv"
     zip_output = dataset_path + "Stanford_Dogs_256.zip"
