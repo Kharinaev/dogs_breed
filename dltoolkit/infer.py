@@ -32,6 +32,7 @@ def evaluate_dl(model, dl, device):
 if __name__ == "__main__":
 
     # Prepare dataset
+    print("Prepare dataset")
     dataset_path = "data/Stanford_Dogs_256/"
     dataset_info = pd.read_csv(dataset_path + "dataset_info.csv")
     n_classes = dataset_info.class_num.nunique()
@@ -42,13 +43,15 @@ if __name__ == "__main__":
     test_dl = DataLoader(test_set, batch_size=32, shuffle=False)
 
     # Load model
+    print("Loading model")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ResNetClassificator(n_classes).to(device)
     model.load_state_dict(torch.load("models/model.pth", map_location=device))
 
     # Evaluation
+    print("Evaluating test dataset")
     labels, preds = evaluate_dl(model, test_dl, device)
 
     # Save outputs
     output_df = pd.DataFrame({"true": labels, "pred": preds})
-    output_df.to_csv("dataset_path/model_output.csv")
+    output_df.to_csv("model_output.csv")

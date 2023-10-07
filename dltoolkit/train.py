@@ -42,21 +42,28 @@ def train(model, n_epochs, criterion, optimizer, dl, device):
 
 if __name__ == "__main__":
 
+    os.mkdir("data/")
+    os.mkdir("data/Stanford_Dogs_256/")
+    os.mkdir("models/")
+
     # Download data
     dataset_path = "data/Stanford_Dogs_256/"
     csv_url = "https://drive.google.com/uc?id=1lWtrHY8v3QE5zg6-CzSFiY1uAKBFzadI"
     zip_url = "https://drive.google.com/uc?id=1d_0lM9PNWxH3IAkmgSXcDqBb92gec3Gd"
     csv_output = dataset_path + "dataset_info.csv"
     zip_output = dataset_path + "Stanford_Dogs_256.zip"
+    print("Downloading data")
     gdown.download(csv_url, csv_output)
     gdown.download(zip_url, zip_output)
 
+    print("Extracting data")
     with zipfile.ZipFile(zip_output, "r") as zip_ref:
         zip_ref.extractall(dataset_path)
 
     os.remove(zip_output)
 
     # Prepare dataset
+    print("preparing dataset")
     dataset_info = pd.read_csv(csv_output)
     n_classes = dataset_info.class_num.nunique()
 
@@ -66,6 +73,7 @@ if __name__ == "__main__":
     train_dl = DataLoader(train_set, batch_size=32, shuffle=True)
 
     # Prepare model
+    print("Loading model")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ResNetClassificator(n_classes).to(device)
     model.train()
@@ -74,6 +82,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     # train model
+    print("Training model")
     train(model, 3, criterion, optimizer, train_dl, device)
 
     # Save model
