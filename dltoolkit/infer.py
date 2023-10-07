@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # Prepare dataset
     print("Prepare dataset")
     dataset_path = "data/Stanford_Dogs_256/"
-    dataset_info = pd.read_csv(dataset_path + "dataset_info.csv")
+    dataset_info = pd.read_csv("data/dataset_info.csv")
     n_classes = dataset_info.class_num.nunique()
 
     test_set = StanfordDogsDataset(
