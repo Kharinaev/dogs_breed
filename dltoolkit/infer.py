@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
+from tqdm import tqdm
 
 from dataset import StanfordDogsDataset
 from model import ResNetClassificator
@@ -14,7 +17,7 @@ def evaluate_dl(model, dl, device):
     preds_ = []
     labels_ = []
     with torch.no_grad():
-        for inputs, labels in dl:
+        for inputs, labels in tqdm(dl, desc="Test"):
             inputs = inputs.to(device)
             outputs = model(inputs)
             preds = outputs.detach().cpu().argmax(1)
@@ -29,24 +32,33 @@ def evaluate_dl(model, dl, device):
     return torch.cat(labels_), torch.cat(preds_)
 
 
-if __name__ == "__main__":
+def get_dataset_and_loader(**dataset_args):
+    test_ds = StanfordDogsDataset(**dataset_args)
+    test_dl = DataLoader(test_ds, batch_size=32, shuffle=False)
+    return test_ds, test_dl
 
-    # Prepare dataset
-    print("Prepare dataset")
-    dataset_path = "data/Stanford_Dogs_256/"
-    dataset_info = pd.read_csv("data/dataset_info.csv")
-    n_classes = dataset_info.class_num.nunique()
 
-    test_set = StanfordDogsDataset(
-        dataset_path, dataset_info, set="test", transform=ToTensor()
-    )
-    test_dl = DataLoader(test_set, batch_size=32, shuffle=False)
-
-    # Load model
-    print("Loading model")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def load_model(n_classes, model_path: Path, device):
     model = ResNetClassificator(n_classes).to(device)
-    model.load_state_dict(torch.load("models/model.pth", map_location=device))
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    return model
+
+
+def inference():
+
+    data_folder = Path("data")
+    models_folder = Path("models")
+    test_ds, test_dl = get_dataset_and_loader(
+        data_folder=data_folder,
+        set="test",
+        transform=ToTensor(),
+        dataset_path=data_folder / Path("Stanford_Dogs_256"),
+        csv_path=data_folder / Path("dataset_info.csv"),
+        load=False,
+    )
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Loading model")
+    model = load_model(test_ds.n_classes, models_folder / Path("model.pth"), device)
 
     # Evaluation
     print("Evaluating test dataset")
@@ -54,4 +66,8 @@ if __name__ == "__main__":
 
     # Save outputs
     output_df = pd.DataFrame({"true": labels, "pred": preds})
-    output_df.to_csv("model_output.csv")
+    output_df.to_csv(data_folder / Path("model_output.csv"))
+
+
+if __name__ == "__main__":
+    inference()
