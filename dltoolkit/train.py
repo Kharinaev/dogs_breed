@@ -2,11 +2,12 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
+from torchvision.models import ResNet18_Weights
 from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
 from dataset import StanfordDogsDataset
-from model import ResNetClassificator
+from model import ResNetClassifier
 from tools import make_dirs
 
 
@@ -40,14 +41,21 @@ def train_loop(model, n_epochs, criterion, optimizer, dl, device):
 
 
 def get_dataset_and_loader(**dataset_args):
-    train_ds = StanfordDogsDataset(**dataset_args)
+    dataset_path = dataset_args["data_folder"] / dataset_args["dataset_name"]
+    csv_path = dataset_args["data_folder"] / dataset_args["csv_name"]
+    if csv_path.is_file() and dataset_path.is_dir():  # data loaded
+        train_ds = StanfordDogsDataset(
+            **dataset_args, dataset_path=dataset_path, csv_path=csv_path, load=False
+        )
+    else:  # data not loaded
+        train_ds = StanfordDogsDataset(**dataset_args)
+
     train_dl = DataLoader(train_ds, batch_size=32, shuffle=True)
     return train_ds, train_dl
 
 
 def load_model(n_classes: int, device: torch.device):
-
-    model = ResNetClassificator(n_classes).to(device)
+    model = ResNetClassifier(n_classes, weights=ResNet18_Weights.DEFAULT).to(device)
     model.train()
 
     return model
@@ -73,7 +81,7 @@ def train_model():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     print("Start training")
-    train_loop(model, 3, criterion, optimizer, train_dl, device)
+    train_loop(model, 5, criterion, optimizer, train_dl, device)
     torch.save(model.state_dict(), models_folder / Path("model.pth"))
 
 

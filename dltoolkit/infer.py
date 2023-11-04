@@ -7,7 +7,7 @@ from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
 from dataset import StanfordDogsDataset
-from model import ResNetClassificator
+from model import ResNetClassifier
 
 
 def evaluate_dl(model, dl, device):
@@ -39,7 +39,7 @@ def get_dataset_and_loader(**dataset_args):
 
 
 def load_model(n_classes, model_path: Path, device):
-    model = ResNetClassificator(n_classes).to(device)
+    model = ResNetClassifier(n_classes).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     return model
 
