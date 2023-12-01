@@ -1,3 +1,5 @@
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -129,3 +131,6 @@ dmypy.json
 .pyre/
 
 notebooks/
+data/
+models/
+.gdrive_folder_id.txt
