@@ -5,6 +5,7 @@ from typing import Optional
 
 import gdown
 import pandas as pd
+from dvc.repo import Repo
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -23,25 +24,29 @@ class StanfordDogsDataset(Dataset):
         csv_path: Optional[Path] = None,
         load: bool = True,
     ):
-        if load:
-            if (
-                csv_url is None
-                or dataset_url is None
-                or csv_name is None
-                or dataset_name is None
-            ):
-                raise ValueError(
-                    " `load` is True, but url's for loading or destination "
-                    "file names was not specified"
-                )
-            else:
-                csv_path, dataset_path = self.load_dataset(
-                    data_folder, csv_name, dataset_name, csv_url, dataset_url
-                )
-        elif dataset_path is None or csv_path is None:
-            raise ValueError(
-                "Dataset is not loaded because `load` is False, but `dataset_path` and/or `csv_path` was not specified"
-            )
+        # if load:
+        #     if (
+        #         csv_url is None
+        #         or dataset_url is None
+        #         or csv_name is None
+        #         or dataset_name is None
+        #     ):
+        #         raise ValueError(
+        #             " `load` is True, but url's for loading or destination "
+        #             "file names was not specified"
+        #         )
+        #     else:
+        #         csv_path, dataset_path = self.load_dataset(
+        #             data_folder, csv_name, dataset_name, csv_url, dataset_url
+        #         )
+        # elif dataset_path is None or csv_path is None:
+        #     raise ValueError(
+        #         "Dataset is not loaded because `load` is False, but `dataset_path` and/or `csv_path` was not specified"
+        #     )
+
+        # dvc pull
+        self.dvc_repo = Repo("dltoolkit")
+        self.dvc_repo.pull()
 
         self.dataset_path = Path(dataset_path)
         self.csv_path = csv_path

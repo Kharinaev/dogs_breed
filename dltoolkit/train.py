@@ -1,3 +1,4 @@
+# import sys
 from pathlib import Path
 
 import torch
@@ -6,9 +7,12 @@ from torchvision.models import ResNet18_Weights
 from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
-from dataset import StanfordDogsDataset
-from model import ResNetClassifier
-from tools import make_dirs
+from dltoolkit.dataset import StanfordDogsDataset
+from dltoolkit.model import ResNetClassifier
+from dltoolkit.tools import make_dirs
+
+
+# sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 
 def train_loop(model, n_epochs, criterion, optimizer, dl, device):
@@ -83,6 +87,10 @@ def train_model():
     print("Start training")
     train_loop(model, 5, criterion, optimizer, train_dl, device)
     torch.save(model.state_dict(), models_folder / Path("model.pth"))
+
+
+def func():
+    print("done")
 
 
 if __name__ == "__main__":

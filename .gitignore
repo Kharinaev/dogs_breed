@@ -135,3 +135,5 @@ data/
 models/
 .gdrive_folder_id.txt
 /data
+
+_test_dvc.py

@@ -1,13 +1,15 @@
+# import sys
 from pathlib import Path
 
+# sys.path.append(str(Path(__file__).resolve().parent.parent))
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
-from dataset import StanfordDogsDataset
-from model import ResNetClassifier
+from dltoolkit.dataset import StanfordDogsDataset
+from dltoolkit.model import ResNetClassifier
 
 
 def evaluate_dl(model, dl, device):
