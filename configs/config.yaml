@@ -1,0 +1,13 @@
+dataset:
+  dataset_path: data/Stanford_Dogs_256
+  csv_path: data/dataset_info.csv
+  batch_size: 32
+
+train:
+  num_epochs: 5
+  learning_rate: 1e-3
+  model_save_path: models/model.pth
+
+infer:
+  model_load_path: models/model.pth
+  csv_output_save_path: data/model_output.csv

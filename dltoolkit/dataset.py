@@ -1,57 +1,30 @@
-import os
-import zipfile
 from pathlib import Path
-from typing import Optional
 
-import gdown
 import pandas as pd
-from dvc.repo import Repo
+from dvc.api import DVCFileSystem
 from PIL import Image
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 
 class StanfordDogsDataset(Dataset):
     def __init__(
         self,
         set: str,
-        data_folder: Path,
-        csv_name: Optional[str] = None,
-        dataset_name: Optional[str] = None,
-        csv_url: Optional[str] = None,
-        dataset_url: Optional[str] = None,
+        dvc_repo: Path,
+        dataset_path: Path,
+        csv_path: Path,
         transform=None,
-        dataset_path: Optional[Path] = None,
-        csv_path: Optional[Path] = None,
-        load: bool = True,
+        check_files: bool = False,
     ):
-        # if load:
-        #     if (
-        #         csv_url is None
-        #         or dataset_url is None
-        #         or csv_name is None
-        #         or dataset_name is None
-        #     ):
-        #         raise ValueError(
-        #             " `load` is True, but url's for loading or destination "
-        #             "file names was not specified"
-        #         )
-        #     else:
-        #         csv_path, dataset_path = self.load_dataset(
-        #             data_folder, csv_name, dataset_name, csv_url, dataset_url
-        #         )
-        # elif dataset_path is None or csv_path is None:
-        #     raise ValueError(
-        #         "Dataset is not loaded because `load` is False, but `dataset_path` and/or `csv_path` was not specified"
-        #     )
-
-        # dvc pull
-        self.dvc_repo = Repo("dltoolkit")
-        self.dvc_repo.pull()
+        if check_files:
+            self.check_and_load_data(dvc_repo)
 
         self.dataset_path = Path(dataset_path)
         self.csv_path = csv_path
 
         df = pd.read_csv(csv_path)
+        self.set = set
         self.n_classes = df.class_num.nunique()
         self.df = df[df.set == set]
         self.transform = transform
@@ -64,34 +37,25 @@ class StanfordDogsDataset(Dataset):
         class_num = row["class_num"]
         image_path = Path(row["path"])
 
-        img = Image.open(self.dataset_path / image_path)
+        img = Image.open(str(self.dataset_path / image_path))
         if self.transform:
             img = self.transform(img)
 
         return img, class_num
 
-    def load_dataset(
+    def check_and_load_data(
         self,
-        data_folder: Path,
-        csv_name: str,
-        dataset_name: str,
-        csv_url: str,
-        dataset_url: str,
+        dvc_repo: Path,
     ):
-        # csv_output = "data/dataset_info.csv"
-        csv_path = data_folder / Path(csv_name)
-        # zip_output = "data/Stanford_Dogs_256.zip"
-        dataset_path = data_folder / Path(dataset_name)
-        zip_file = dataset_path.with_suffix(".zip")
-        print("Downloading data")
-        gdown.download(csv_url, str(csv_path))
-        gdown.download(dataset_url, str(zip_file))
+        fs = DVCFileSystem(str(dvc_repo))
+        self.fs = fs
+        dvc_tracked_files = fs.find(".", detail=False, dvc_only=True)
+        cnt_exists = 0
+        for file in tqdm(dvc_tracked_files, desc="Checking all files"):
+            if Path(file).is_file():
+                cnt_exists += 1
+            else:
+                fs.get_file(file, file)
 
-        print("Extracting data")
-        with zipfile.ZipFile(zip_file, "r") as zip_ref:
-            zip_ref.extractall("data")
-
-        os.remove(zip_file)
-
-        print("Data loaded and extracted")
-        return csv_path, dataset_path
+        print(f"Total {len(dvc_tracked_files)} files tracked by DVC")
+        print(f"Already exists {cnt_exists}/{len(dvc_tracked_files)}")

@@ -135,6 +135,10 @@ data/
 models/
 .gdrive_folder_id.txt
 /data
-
-_test_dvc.py
 /models
+outputs/
+
+
+# tmp
+test_dvc.py
+hydra_fire.py
