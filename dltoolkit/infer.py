@@ -53,7 +53,6 @@ def inference(infer_cfg: InferConfig, dataset_cfg: DatasetConfig):
         dataset_path=dataset_cfg.dataset_path,
         csv_path=dataset_cfg.csv_path,
         transform=ToTensor(),
-        check_files=True,
     )
     test_dl = DataLoader(test_ds, batch_size=dataset_cfg.batch_size, shuffle=False)
 
