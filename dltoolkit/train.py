@@ -58,10 +58,11 @@ def train_model(train_cfg: TrainConfig, dataset_cfg: DatasetConfig):
     print("Preparing dataset")
     train_ds = StanfordDogsDataset(
         "train",
-        dvc_repo=str(Path.cwd()),
+        abs_dvc_repo=str(Path.cwd()),
         dataset_path=dataset_cfg.dataset_path,
         csv_path=dataset_cfg.csv_path,
         transform=ToTensor(),
+        check_files=True,
     )
     train_dl = DataLoader(train_ds, batch_size=dataset_cfg.batch_size, shuffle=True)
 

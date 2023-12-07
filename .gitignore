@@ -142,3 +142,5 @@ outputs/
 # tmp
 test_dvc.py
 hydra_fire.py
+tmp.py
+dltoolkit/tmp.py

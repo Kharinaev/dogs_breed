@@ -11,14 +11,14 @@ class StanfordDogsDataset(Dataset):
     def __init__(
         self,
         set: str,
-        dvc_repo: Path,
+        abs_dvc_repo: Path,
         dataset_path: Path,
         csv_path: Path,
         transform=None,
-        check_files: bool = False,
+        load: bool = True,
     ):
-        if check_files:
-            self.check_and_load_data(dvc_repo)
+        if load:
+            self.load_data(abs_dvc_repo)
 
         self.dataset_path = Path(dataset_path)
         self.csv_path = csv_path
@@ -43,19 +43,11 @@ class StanfordDogsDataset(Dataset):
 
         return img, class_num
 
-    def check_and_load_data(
+    def load_data(
         self,
-        dvc_repo: Path,
+        abs_dvc_repo: Path,
     ):
-        fs = DVCFileSystem(str(dvc_repo))
-        self.fs = fs
-        dvc_tracked_files = fs.find(".", detail=False, dvc_only=True)
-        cnt_exists = 0
-        for file in tqdm(dvc_tracked_files, desc="Checking all files"):
-            if Path(file).is_file():
-                cnt_exists += 1
-            else:
-                fs.get_file(file, file)
+        from dvc.repo import Repo
 
-        print(f"Total {len(dvc_tracked_files)} files tracked by DVC")
-        print(f"Already exists {cnt_exists}/{len(dvc_tracked_files)}")
+        repo = Repo(str(abs_dvc_repo))
+        repo.pull(force=True)

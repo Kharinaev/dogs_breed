@@ -49,7 +49,7 @@ def load_model(n_classes, model_path: Path, device):
 def inference(infer_cfg: InferConfig, dataset_cfg: DatasetConfig):
     test_ds = StanfordDogsDataset(
         "test",
-        dvc_repo=str(Path.cwd()),
+        abs_dvc_repo=str(Path.cwd()),
         dataset_path=dataset_cfg.dataset_path,
         csv_path=dataset_cfg.csv_path,
         transform=ToTensor(),
