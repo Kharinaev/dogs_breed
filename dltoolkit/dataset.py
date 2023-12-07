@@ -1,10 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
-from dvc.api import DVCFileSystem
 from PIL import Image
 from torch.utils.data import Dataset
-from tqdm import tqdm
 
 
 class StanfordDogsDataset(Dataset):
