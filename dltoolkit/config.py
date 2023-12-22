@@ -13,6 +13,10 @@ class TrainConfig:
     num_epochs: int
     learning_rate: float
     model_save_path: str
+    experiment_name: str
+    run_name: str
+    tracking_uri: str
+    registry_uri: str
 
 
 @dataclass

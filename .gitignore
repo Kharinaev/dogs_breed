@@ -137,6 +137,7 @@ models/
 /data
 /models
 outputs/
+logdir/
 
 
 # tmp

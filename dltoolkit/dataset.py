@@ -49,3 +49,6 @@ class StanfordDogsDataset(Dataset):
 
         repo = Repo(str(abs_dvc_repo))
         repo.pull(force=True)
+
+    def get_targets(self):
+        return self.df.class_num.values
