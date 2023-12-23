@@ -23,6 +23,7 @@ class TrainConfig:
 class InferConfig:
     model_load_path: str
     csv_output_save_path: str
+    accuracy_topk: list
 
 
 @dataclass

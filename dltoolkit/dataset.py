@@ -18,10 +18,10 @@ class StanfordDogsDataset(Dataset):
         if load:
             self.load_data(abs_dvc_repo)
 
-        self.dataset_path = Path(dataset_path)
-        self.csv_path = csv_path
+        self.dataset_path = abs_dvc_repo / Path(dataset_path)
+        self.csv_path = abs_dvc_repo / csv_path
 
-        df = pd.read_csv(csv_path)
+        df = pd.read_csv(self.csv_path)
         self.set = set
         self.n_classes = df.class_num.nunique()
         self.df = df[df.set == set]

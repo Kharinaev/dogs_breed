@@ -145,3 +145,5 @@ test_dvc.py
 hydra_fire.py
 tmp.py
 dltoolkit/tmp.py
+dltoolkit/test.py
+dltoolkit/train_old.py

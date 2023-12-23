@@ -11,3 +11,4 @@ train:
 infer:
   model_load_path: models/model.pth
   csv_output_save_path: data/model_output.csv
+  accuracy_topk: [1,3,5]
