@@ -4,7 +4,7 @@ from hydra.core.config_store import ConfigStore
 
 from dltoolkit.config import Params
 from dltoolkit.infer import inference
-from dltoolkit.mlflow_server import run_mlflow_server
+from dltoolkit.run_server import run_mlflow_server
 from dltoolkit.train import train_model
 
 

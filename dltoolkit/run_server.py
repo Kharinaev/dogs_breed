@@ -10,10 +10,9 @@ def run_mlflow_server(model_uri, image_path=None):
         img = Image.open(image_path)
         X = np.array(img)[None, :]
         X = X.transpose(0, 3, 1, 2).astype("float32")
-        print(f"Image: {X.shape}")
 
     onnx_pyfunc = mlflow.pyfunc.load_model(model_uri)
-    outputs = onnx_pyfunc.predict(X)["194"]
+    outputs = onnx_pyfunc.predict(X)["CLASS_PROBS"]
     preds = outputs.argmax(1)
     print(preds.shape)
     print(f"Predictions: {preds}")

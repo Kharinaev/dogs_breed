@@ -109,7 +109,15 @@ def load_model(n_classes: int):
 
 
 def model_export_onnx(model, train_cfg: TrainConfig, X):
-    torch.onnx.export(model, X, train_cfg.export_onnx)
+    torch.onnx.export(
+        model,
+        X,
+        train_cfg.export_onnx,
+        export_params=True,
+        input_names=["IMAGES"],
+        output_names=["CLASS_PROBS"],
+        dynamic_axes={"IMAGES": {0: "BATCH_SIZE"}, "CLASS_PROBS": {0: "BATCH_SIZE"}},
+    )
     onnx_model = onnx.load_model(train_cfg.export_onnx)
 
     with mlflow.start_run():
