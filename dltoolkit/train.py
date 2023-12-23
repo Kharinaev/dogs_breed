@@ -9,15 +9,12 @@ import onnx
 import torch
 from albumentations.pytorch import ToTensorV2
 from catalyst import dl
+from catalyst.loggers.mlflow import MLflowLogger
 
-# from catalyst.loggers.mlflow import MLflowLogger
-from catalyst.loggers.tensorboard import TensorboardLogger
-from catalyst.loggers.wandb import WandbLogger
+# from catalyst.loggers.tensorboard import TensorboardLogger
+# from catalyst.loggers.wandb import WandbLogger
 from torch.utils.data import DataLoader, Subset, random_split
 from torchvision.models import ResNet18_Weights
-
-
-# from tqdm import tqdm
 
 
 try:
@@ -47,13 +44,6 @@ def get_callbacks(num_classes, acc_topk):
         "f1": dl.PrecisionRecallF1SupportCallback(
             input_key="logits", target_key="targets", num_classes=num_classes
         ),
-        # "checkpoint": dl.CheckpointCallback(
-        #     self._logdir,
-        #     loader_key="valid",
-        #     metric_key="accuracy01",
-        #     minimize=False,
-        #     topk=1,
-        # ),
         "tqdm": dl.TqdmCallback(),
     }
 
@@ -122,17 +112,10 @@ def model_export_onnx(model, train_cfg: TrainConfig, X):
     torch.onnx.export(model, X, train_cfg.export_onnx)
     onnx_model = onnx.load_model(train_cfg.export_onnx)
 
-    # log the model into a mlflow run
     with mlflow.start_run():
         signature = mlflow.models.infer_signature(X.numpy(), model(X).detach().numpy())
         model_info = mlflow.onnx.log_model(onnx_model, "model", signature=signature)
         print(f"MLFLow onnx_model model_uri: {model_info.model_uri}")
-
-    # load the logged model and make a prediction
-    # onnx_pyfunc = mlflow.pyfunc.load_model(model_info.model_uri)
-
-    # predictions = onnx_pyfunc.predict(X.numpy())
-    # print(predictions)
 
 
 def train_model(
@@ -169,16 +152,14 @@ def train_model(
 
     print("Step 3/4: Start training")
     logger_dict = {
-        "tensorboard": TensorboardLogger(logdir="./logdir/tensorboard"),
-        "wandb": WandbLogger(project="dltoolkit", name=train_cfg.experiment_name),
-        #     "mlflow": MLflowLogger(
-        #         experiment=train_cfg.experiment_name,
-        #         run=train_cfg.run_name,
-        #         tracking_uri=train_cfg.tracking_uri,
-        #         registry_uri=train_cfg.registry_uri,
-        #         log_batch_metrics=True,
-        #         log_epoch_metrics=True,
-        #     ),
+        # "tensorboard": TensorboardLogger(logdir="./logdir/tensorboard"),
+        # "wandb": WandbLogger(project="dltoolkit", name=train_cfg.experiment_name),
+        "mlflow": MLflowLogger(
+            experiment=train_cfg.experiment_name,
+            run=train_cfg.run_name,
+            log_batch_metrics=True,
+            log_epoch_metrics=True,
+        ),
     }
 
     git_commit_id = get_git_commit_id()

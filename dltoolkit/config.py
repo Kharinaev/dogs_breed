@@ -24,8 +24,6 @@ class TrainConfig:
     export_onnx: Optional[str]
     experiment_name: str
     run_name: str
-    tracking_uri: str
-    registry_uri: str
 
 
 @dataclass

@@ -13,10 +13,8 @@ train:
   learning_rate: 1e-3
   use_fp16: True
   export_onnx: 'models/model.onnx'
-  experiment_name: exp_1
-  run_name: stanforddogs_resnet18
-  tracking_uri: <tracking_uri>
-  registry_uri: <registry_uri>
+  experiment_name: stanforddogs_resnet18
+  run_name: run_1
 
 
 infer:
