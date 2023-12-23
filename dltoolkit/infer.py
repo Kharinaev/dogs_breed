@@ -78,7 +78,6 @@ def inference(
         transform_type="torchvision",
     )
     test_dl = DataLoader(test_ds, batch_size=dataset_cfg.batch_size, shuffle=False)
-    print(next(iter(test_dl))[0].shape)
 
     print("Step 2/4: Loading model")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
