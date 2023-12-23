@@ -1,0 +1,31 @@
+name: "onnx-resnet18"
+platform: "onnxruntime_onnx"
+max_batch_size: 32
+
+input [
+    {
+        name: "IMAGES"
+        data_type: TYPE_FP32
+        dims: [3, 256, 256]
+    }
+]
+
+output [
+    {
+        name: "CLASS_PROBS"
+        data_type: TYPE_FP32
+        dims: [64]
+    }
+]
+
+instance_group [
+    {
+        count: 2
+        kind: KIND_GPU
+        gpus: [0]
+    }
+]
+
+dynamic_batching: {
+    max_queue_delay_microseconds : 500
+}

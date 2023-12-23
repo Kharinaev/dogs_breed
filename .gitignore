@@ -140,7 +140,8 @@ outputs/
 logdir/
 mlruns/
 wandb/
-
+*.pth
+*.onnx
 
 # tmp
 test_dvc.py

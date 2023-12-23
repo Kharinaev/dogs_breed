@@ -4,8 +4,9 @@ from pathlib import Path
 import albumentations as A
 import git
 import hydra
-import mlflow
-import onnx
+
+# import mlflow
+# import onnx
 import torch
 from albumentations.pytorch import ToTensorV2
 from catalyst import dl
@@ -20,11 +21,13 @@ from torchvision.models import ResNet18_Weights
 try:
     from dltoolkit.config import DatasetConfig, ModelConfig, Params, TrainConfig
     from dltoolkit.dataset import StanfordDogsDataset
+    from dltoolkit.export_model import model_export_onnx
     from dltoolkit.model import ResNetClassifier
 except ImportError:
-    from config import DatasetConfig, ModelConfig, Params, TrainConfig
-    from dataset import StanfordDogsDataset
-    from model import ResNetClassifier
+    from .config import DatasetConfig, ModelConfig, Params, TrainConfig
+    from .dataset import StanfordDogsDataset
+    from .export_model import model_export_onnx
+    from .model import ResNetClassifier
 
 
 def get_callbacks(num_classes, acc_topk):
@@ -108,22 +111,22 @@ def load_model(n_classes: int):
     return model
 
 
-def model_export_onnx(model, train_cfg: TrainConfig, X):
-    torch.onnx.export(
-        model,
-        X,
-        train_cfg.export_onnx,
-        export_params=True,
-        input_names=["IMAGES"],
-        output_names=["CLASS_PROBS"],
-        dynamic_axes={"IMAGES": {0: "BATCH_SIZE"}, "CLASS_PROBS": {0: "BATCH_SIZE"}},
-    )
-    onnx_model = onnx.load_model(train_cfg.export_onnx)
+# def model_export_onnx(model, train_cfg: TrainConfig, X):
+#     torch.onnx.export(
+#         model,
+#         X,
+#         train_cfg.export_onnx,
+#         export_params=True,
+#         input_names=["IMAGES"],
+#         output_names=["CLASS_PROBS"],
+#         dynamic_axes={"IMAGES": {0: "BATCH_SIZE"}, "CLASS_PROBS": {0: "BATCH_SIZE"}},
+#     )
+#     onnx_model = onnx.load_model(train_cfg.export_onnx)
 
-    with mlflow.start_run():
-        signature = mlflow.models.infer_signature(X.numpy(), model(X).detach().numpy())
-        model_info = mlflow.onnx.log_model(onnx_model, "model", signature=signature)
-        print(f"MLFLow onnx_model model_uri: {model_info.model_uri}")
+#     with mlflow.start_run():
+#         signature = mlflow.models.infer_signature(X.numpy(), model(X).detach().numpy())
+#         model_info = mlflow.onnx.log_model(onnx_model, "model", signature=signature)
+#         print(f"MLFLow onnx_model model_uri: {model_info.model_uri}")
 
 
 def train_model(
@@ -193,14 +196,8 @@ def train_model(
     torch.save(model.state_dict(), model_cfg.model_path)
     if train_cfg.export_onnx is not None:
         h, w = dataset_cfg.image_size
-        dummy_input = torch.randn(
-            # dataset_cfg.batch_size,
-            1,
-            3,
-            h,
-            w,
-        )
-        model_export_onnx(model, train_cfg, dummy_input)
+        dummy_input = torch.randn(1, 3, h, w)
+        model_export_onnx(model, dummy_input, train_cfg.export_onnx, to_mlflow=True)
 
     print(f"Model saved in {model_cfg.model_path}")
 

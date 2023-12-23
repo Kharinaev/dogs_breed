@@ -1,0 +1,47 @@
+name: "ensemble-onnx"
+platform: "ensemble"
+
+input [
+    {
+        name: "IMAGES_SRC"
+        data_type: TYPE_STRING
+        dims: [ -1 ]
+    }
+]
+
+output [
+    {
+        name: "CLASS_PROBS"
+        data_type: TYPE_FP32
+        dims: [64]
+    }
+]
+
+ensemble_scheduling {
+    step [
+        {
+            model_name: "image-preproc"
+            model_version: -1
+            input_map {
+                key: "IMAGES_SRC"
+                value: "IMAGES_SRC"
+            }
+            output_map {
+                key: "IMAGES"
+                value: "IMAGES"
+            }
+        },
+        {
+            model_name: "onnx-resnet18"
+            model_version: -1
+            input_map {
+                key: "IMAGES"
+                value: "IMAGES"
+            }
+            output_map {
+                key: "CLASS_PROBS"
+                value: "CLASS_PROBS"
+            }
+        }
+    ]
+}
