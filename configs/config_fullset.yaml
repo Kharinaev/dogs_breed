@@ -4,20 +4,17 @@ model:
 
 dataset:
   dataset_path: data/Stanford_Dogs_256
-  csv_path: data/dataset_small_info.csv
+  csv_path: data/dataset_info.csv
   batch_size: 32
-  image_size: [256,256]
 
 train:
-  num_epochs: 1
+  num_epochs: 5
   learning_rate: 1e-3
   use_fp16: True
-  export_onnx: 'models/model.onnx'
   experiment_name: exp_1
-  run_name: stanforddogs_resnet18
+  run_name: stanforddogs_fullset_resnet18
   tracking_uri: <tracking_uri>
   registry_uri: <registry_uri>
-
 
 infer:
   csv_output_save_path: data/model_output.csv

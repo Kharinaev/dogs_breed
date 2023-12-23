@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
@@ -13,6 +14,7 @@ class StanfordDogsDataset(Dataset):
         dataset_path: Path,
         csv_path: Path,
         transform=None,
+        transform_type="torchvision",
         load: bool = True,
     ):
         if load:
@@ -26,6 +28,7 @@ class StanfordDogsDataset(Dataset):
         self.n_classes = df.class_num.nunique()
         self.df = df[df.set == set]
         self.transform = transform
+        self.transform_type = transform_type
 
     def __len__(self):
         return len(self.df)
@@ -37,7 +40,11 @@ class StanfordDogsDataset(Dataset):
 
         img = Image.open(str(self.dataset_path / image_path))
         if self.transform:
-            img = self.transform(img)
+            if self.transform_type == "torchvision":
+                img = self.transform(img)
+            elif self.transform_type == "albumentations":
+                img = np.array(img)
+                img = self.transform(image=img)["image"]
 
         return img, class_num
 

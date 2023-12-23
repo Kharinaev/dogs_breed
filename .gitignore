@@ -138,6 +138,8 @@ models/
 /models
 outputs/
 logdir/
+mlruns/
+wandb/
 
 
 # tmp

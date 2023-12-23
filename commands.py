@@ -4,6 +4,7 @@ from hydra.core.config_store import ConfigStore
 
 from dltoolkit.config import Params
 from dltoolkit.infer import inference
+from dltoolkit.mlflow_server import run_mlflow_server
 from dltoolkit.train import train_model
 
 
@@ -18,7 +19,7 @@ def train(
 ):
     hydra.initialize(version_base="1.3", config_path=config_path, job_name=job_name)
     cfg = hydra.compose(config_name=config_name)
-    train_model(train_cfg=cfg.train, dataset_cfg=cfg.dataset)
+    train_model(model_cfg=cfg.model, dataset_cfg=cfg.dataset, train_cfg=cfg.train)
 
 
 def infer(
@@ -28,7 +29,14 @@ def infer(
 ):
     hydra.initialize(version_base="1.3", config_path=config_path, job_name=job_name)
     cfg = hydra.compose(config_name=config_name)
-    inference(infer_cfg=cfg.infer, dataset_cfg=cfg.dataset)
+    inference(model_cfg=cfg.model, dataset_cfg=cfg.dataset, infer_cfg=cfg.infer)
+
+
+def run_server(model_uri, image_path=None):
+    if image_path is None:
+        # image_path = 'C:\code\dltoolkit\data\Stanford_Dogs_256\n02085936-Maltese_dog\n02085936_37.jpg'
+        image_path = "data/Stanford_Dogs_256/n02085936-Maltese_dog/n02085936_37.jpg"
+    run_mlflow_server(model_uri, image_path)
 
 
 if __name__ == "__main__":
