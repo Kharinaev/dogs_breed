@@ -14,7 +14,7 @@ output [
     {
         name: "CLASS_PROBS"
         data_type: TYPE_FP32
-        dims: [64]
+        dims: [ 64 ]
     }
 ]
 

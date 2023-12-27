@@ -5,6 +5,9 @@ import triton_python_backend_utils as pb_utils
 from PIL import Image
 
 
+# import cv2
+
+
 class TritonPythonModel:
     def initialize(self, args):
         self.image_size = (256, 256)
@@ -14,13 +17,13 @@ class TritonPythonModel:
         for request in requests:
             inp = pb_utils.get_input_tensor_by_name(request, "IMAGES_SRC").as_numpy()
 
-            image_bytes = io.BytesIO(inp.tobytes())
-            image_bytes.seek(0)
-            image_bytes = np.asarray(bytearray(image_bytes.read()), dtype=np.uint8)
-            print(image_bytes)
+            # np_bytes = np.frombuffer(image_bytes)
+            # img = cv2.imdecode(np_bytes, cv2.IMREAD_COLOR)
 
-            # img = Image.open(image_bytes[0])
-            img = Image.frombytes("RGBA", (256, 256), image_bytes, "raw")
+            img = Image.open(io.BytesIO(inp.tobytes()))
+            # img = Image.frombytes("RGBA", (256, 256), image_bytes, "raw")
+            # img = cv2.resize(img, self.image_size)
+            img = img.resize(self.image_size)
             img = np.array(img).transpose(2, 0, 1)
             img = img / 255
             img = img[None, :]

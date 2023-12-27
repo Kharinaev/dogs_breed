@@ -3,8 +3,13 @@ import mlflow
 import onnx
 import torch
 
-from .config import Params
-from .model import ResNetClassifier
+
+try:
+    from dltoolkit.config import Params
+    from dltoolkit.model import ResNetClassifier
+except ImportError:
+    from .config import Params
+    from .model import ResNetClassifier
 
 
 def model_export_onnx(model, X, save_path, to_mlflow=False):

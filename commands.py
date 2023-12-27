@@ -4,7 +4,7 @@ from hydra.core.config_store import ConfigStore
 
 from dltoolkit.config import Params
 from dltoolkit.infer import inference
-from dltoolkit.run_server import run_mlflow_server
+from dltoolkit.run_server import run_server as run_mlflow_server
 from dltoolkit.train import train_model
 
 
@@ -34,7 +34,6 @@ def infer(
 
 def run_server(model_uri, image_path=None):
     if image_path is None:
-        # image_path = 'C:\code\dltoolkit\data\Stanford_Dogs_256\n02085936-Maltese_dog\n02085936_37.jpg'
         image_path = "data/Stanford_Dogs_256/n02085936-Maltese_dog/n02085936_37.jpg"
     run_mlflow_server(model_uri, image_path)
 

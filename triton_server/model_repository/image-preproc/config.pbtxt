@@ -5,7 +5,7 @@ max_batch_size: 0
 input [
     {
         name: "IMAGES_SRC"
-        data_type: TYPE_STRING
+        data_type: TYPE_UINT8
         dims: [ -1 ]
     }
 ]

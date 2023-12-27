@@ -1,149 +1,123 @@
-import io
+import hashlib
 from functools import lru_cache
 
+# from tritonclient.utils import np_to_triton_dtype
+import mlflow
 import numpy as np
 from PIL import Image
 from tritonclient.http import InferenceServerClient, InferInput, InferRequestedOutput
-from tritonclient.utils import np_to_triton_dtype
+
+
+def get_array_hash(array: np.ndarray) -> str:
+    bytes_array = array.tobytes()
+    hash_array = hashlib.sha256(bytes_array).hexdigest()
+    return hash_array
 
 
 @lru_cache
 def get_client():
-    # return InferenceServerClient(url="0.0.0.0:8500")
     return InferenceServerClient(url="127.0.0.1:8500")
+
+
+def call_triton_preproc(image_path):
+    triton_client = get_client()
+    src_image = np.fromfile(image_path, dtype="uint8")
+
+    infer_input = InferInput(name="IMAGES_SRC", shape=src_image.shape, datatype="UINT8")
+    infer_input.set_data_from_numpy(src_image)
+
+    infer_output = InferRequestedOutput("IMAGES")
+
+    query_response = triton_client.infer(
+        "image-preproc", [infer_input], outputs=[infer_output]
+    )
+    processed_image = query_response.as_numpy("IMAGES")
+    return processed_image
 
 
 def call_triton_ensemble(image_path):
     triton_client = get_client()
-    # with open(image_path, "rb") as image:
-    #     f = image.read()
-    #     bytes = bytearray(f)
-    pil_img = Image.open(image_path)
-    img_byte_arr = io.BytesIO()
-    pil_img.save(img_byte_arr, format="JPEG")
-    img_byte_arr = img_byte_arr.getvalue()
-    image = np.array([img_byte_arr], dtype=object)
-    # print(image.shape)
+    src_image = np.fromfile(image_path, dtype="uint8")
 
-    input_img = InferInput(
-        name="IMAGES_SRC", shape=image.shape, datatype=np_to_triton_dtype(image.dtype)
-    )
-    input_img.set_data_from_numpy(image, binary_data=True)
+    infer_input = InferInput(name="IMAGES_SRC", shape=src_image.shape, datatype="UINT8")
+    infer_input.set_data_from_numpy(src_image)
 
-    infer_output = InferRequestedOutput("CLASS_PROBS", binary_data=True)
+    infer_output = InferRequestedOutput("CLASS_PROBS")
 
     query_response = triton_client.infer(
-        "ensemble-onnx", [input_img], outputs=[infer_output]
+        "ensemble-onnx", [infer_input], outputs=[infer_output]
     )
-    class_probs = query_response.as_numpy("CLASS_PROBS")[0]
+    class_probs = query_response.as_numpy("CLASS_PROBS")
     return class_probs
 
 
-# def call_triton_preproc(text: str):
-#     triton_client = get_client()
-#     text = np.array([text.encode("utf-8")], dtype=object)
+def local_preproc(image_path):
+    img = Image.open(image_path)
+    img = img.resize((256, 256))
+    img = np.array(img).transpose(2, 0, 1)
+    img = img / 255
+    img = img[None, :]
+    img = img.astype("float32")
+    return img
 
-#     input_text = InferInput(
-#         name="TEXTS", shape=text.shape, datatype=np_to_triton_dtype(text.dtype)
-#     )
-#     input_text.set_data_from_numpy(text, binary_data=True)
 
-#     query_response = triton_client.infer(
-#         "python-tokenizer",
-#         [input_text],
-#         outputs=[
-#             InferRequestedOutput("INPUT_IDS", binary_data=True),
-#             InferRequestedOutput("ATTENTION_MASK", binary_data=True),
-#         ],
-#     )
-#     input_ids = query_response.as_numpy("INPUT_IDS")[0]
-#     attention_massk = query_response.as_numpy("ATTENTION_MASK")[0]
-#     return input_ids, attention_massk
+def test_preproc(image_path):
+    print("Test preprocessing")
+    local = local_preproc(image_path)
+    triton = call_triton_preproc(image_path)
+    print(f"Shapes: Local {local.shape}, Triton {triton.shape}")
+    local_hash = get_array_hash(local)
+    remote_hash = get_array_hash(triton)
+    assert local_hash == remote_hash
+    print("Preprocessing equal\n")
+
+
+def run_server(model_uri, image_path=None):
+    if image_path is None:
+        X = np.random.randn(1, 3, 256, 256, dtype="float32")
+    else:
+        img = Image.open(image_path)
+        img = img.resize((256, 256))
+        img = np.array(img).transpose(2, 0, 1)
+        img = img / 255
+        img = img[None, :]
+        X = img.astype("float32")
+
+    onnx_pyfunc = mlflow.pyfunc.load_model(model_uri)
+    outputs = onnx_pyfunc.predict(X)["CLASS_PROBS"][0]
+    return outputs
+
+
+def test_model_outputs(image_path, model_path, gpu=False):
+    triton_output = call_triton_ensemble(image_path)
+    local_output = run_server(model_path, image_path)
+    print(f"Classes: Local {local_output.argmax()}, Triton {triton_output.argmax()}")
+    print(f"Shapes: Local {local_output.shape}, Triton {triton_output.shape}")
+    if not gpu:
+        triton_hash = get_array_hash(triton_output)
+        local_hash = get_array_hash(local_output)
+        assert triton_hash == local_hash
+        print("Outputs equal")
+
+
+def test_gpu_consistency(image_path, num_test=20):
+    preds = []
+    for _ in range(num_test):
+        outputs = call_triton_ensemble(image_path)
+        preds.append(outputs)
+
+    preds = np.array(preds)
+    stds = np.std(preds, axis=0)
+    assert np.all(stds < 5e-4)
 
 
 def main():
-    # _input_ids, _attention_mask = call_triton_tokenizer(texts[0])
-    # assert (input_ids == _input_ids).all() and (attention_mask == _attention_mask).all()
-
-    # embeddings = torch.tensor(
-    #     [call_triton_embedder_ensembele(row).tolist() for row in texts]
-    # )
-    # distances = torch.cdist(
-    #     x1=embeddings,
-    #     x2=embeddings,
-    #     p=2,
-    # )
-    # print(distances)
     image_path = "../data/Stanford_Dogs_256/n02085936-Maltese_dog/n02085936_37.jpg"
-    local_output = np.array(
-        [
-            1.0620191,
-            -0.7587482,
-            -1.6564605,
-            11.401388,
-            3.2964902,
-            8.236326,
-            -28.507414,
-            3.844439,
-            -23.31831,
-            -12.119051,
-            -7.735053,
-            -2.9638703,
-            25.525518,
-            0.4943261,
-            -9.784065,
-            7.268266,
-            -8.742714,
-            14.933839,
-            -11.886274,
-            4.6339173,
-            -22.943558,
-            -6.0866456,
-            7.4265356,
-            19.42977,
-            48.221542,
-            0.23032856,
-            9.026609,
-            -0.44492602 - 12.280064,
-            17.129585,
-            -15.022027,
-            -16.700272,
-            -9.24439,
-            5.7181115,
-            5.2458787,
-            -20.931839,
-            20.451225,
-            8.196779,
-            13.632483,
-            35.325592,
-            16.890198,
-            3.460497,
-            -12.492832,
-            6.721471,
-            -7.665103,
-            -5.6233363 - 33.008884,
-            -2.22586,
-            29.850943,
-            6.8947067,
-            1.4544103,
-            9.806751,
-            -16.165133,
-            -2.354072,
-            -3.7289567,
-            18.51368,
-            -11.124953,
-            -4.79417,
-            2.7173142,
-            4.570362,
-            -3.0870097 - 19.750126,
-            -26.657274,
-            16.696358,
-        ]
-    )
+    model_path = "../mlruns/0/190888c06cca4d4a88bd3ec2b3dc8c8e/artifacts/model"
 
-    triton_output = np.array(call_triton_ensemble(image_path))
-    print(f"All close: {np.allclose(local_output, triton_output)}")
-    print(f"Local: {local_output.argmax()}, Triton: {triton_output.argmax()}")
+    test_preproc(image_path)
+    test_model_outputs(image_path, model_path, gpu=True)
+    test_gpu_consistency(image_path)
 
 
 if __name__ == "__main__":
