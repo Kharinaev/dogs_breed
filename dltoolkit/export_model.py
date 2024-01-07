@@ -12,7 +12,7 @@ except ImportError:
     from .model import ResNetClassifier
 
 
-def model_export_onnx(model, X, save_path, to_mlflow=False):
+def model_export_onnx(model, X, save_path, to_mlflow=False, mlflow_modl_uri_file=None):
     torch.onnx.export(
         model,
         X,
@@ -32,6 +32,10 @@ def model_export_onnx(model, X, save_path, to_mlflow=False):
             model_info = mlflow.onnx.log_model(onnx_model, "model", signature=signature)
             print(f"MLFLow onnx_model model_uri: {model_info.model_uri}")
 
+            with open(mlflow_modl_uri_file, "w") as f:
+                f.write(str(model_info.model_uri))
+            print(f"model_uri written in file: {mlflow_modl_uri_file}")
+
 
 @hydra.main(config_path="../configs", config_name="config", version_base="1.3")
 def main(cfg: Params) -> None:
@@ -40,7 +44,13 @@ def main(cfg: Params) -> None:
     model.load_state_dict(torch.load(cfg.model.model_path, map_location=device))
     h, w = cfg.dataset.image_size
     dummy_input = torch.randn(1, 3, h, w)
-    model_export_onnx(model, dummy_input, save_path=cfg.train.export_onnx, to_mlflow=True)
+    model_export_onnx(
+        model,
+        dummy_input,
+        save_path=cfg.train.export_onnx,
+        to_mlflow=True,
+        mlflow_modl_uri_file=cfg.train.mlflow_model_uri_file,
+    )
 
 
 if __name__ == "__main__":

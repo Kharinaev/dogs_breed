@@ -130,6 +130,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+.DS_Store
+
 notebooks/
 data/
 models/
@@ -142,6 +144,7 @@ mlruns/
 wandb/
 *.pth
 *.onnx
+last_mlflow_model_uri.txt
 
 # tmp
 test_dvc.py

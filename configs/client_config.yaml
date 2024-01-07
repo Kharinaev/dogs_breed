@@ -1,0 +1,9 @@
+client_run:
+  image_path: tests/images/beagle.jpg
+  class_num_dict_path: data/class_num_dict.csv
+
+client_test:
+  do_tests: True
+  image_path: tests/images/beagle.jpg
+  on_gpu: False
+  local_model_uri_path: triton_server/model_repository/onnx-resnet18/1/model.onnx

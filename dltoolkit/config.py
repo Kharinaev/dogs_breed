@@ -24,12 +24,14 @@ class TrainConfig:
     export_onnx: Optional[str]
     experiment_name: str
     run_name: str
+    mlflow_model_uri_file: Optional[str]
 
 
 @dataclass
 class InferConfig:
     csv_output_save_path: str
     accuracy_topk: list
+    class_num_dict_path: str
 
 
 @dataclass

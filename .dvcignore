@@ -5,3 +5,4 @@
 data/model_output.csv
 data/dataset_info_subset.csv
 logdir/
+last_mlflow_model_uri.txt

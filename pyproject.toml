@@ -7,7 +7,7 @@ readme = "README.md"
 repository = "https://github.com/Kharinaev/dltoolkit"
 
 [tool.poetry.dependencies]
-python = "~3.10"
+python = "3.10.13"
 
 PyYAML = "^6.0"
 toml = "^0.10.2"
@@ -22,6 +22,9 @@ Pillow = "9.4.0"
 tqdm = "^4.65.0"
 onnx = "1.15.0"
 onnxruntime = "1.16.3"
+tritonclient = "2.41.0"
+gevent = "23.9.1"
+geventhttpclient = "2.0.11"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^3.4.0"

@@ -111,24 +111,6 @@ def load_model(n_classes: int):
     return model
 
 
-# def model_export_onnx(model, train_cfg: TrainConfig, X):
-#     torch.onnx.export(
-#         model,
-#         X,
-#         train_cfg.export_onnx,
-#         export_params=True,
-#         input_names=["IMAGES"],
-#         output_names=["CLASS_PROBS"],
-#         dynamic_axes={"IMAGES": {0: "BATCH_SIZE"}, "CLASS_PROBS": {0: "BATCH_SIZE"}},
-#     )
-#     onnx_model = onnx.load_model(train_cfg.export_onnx)
-
-#     with mlflow.start_run():
-#         signature = mlflow.models.infer_signature(X.numpy(), model(X).detach().numpy())
-#         model_info = mlflow.onnx.log_model(onnx_model, "model", signature=signature)
-#         print(f"MLFLow onnx_model model_uri: {model_info.model_uri}")
-
-
 def train_model(
     model_cfg: ModelConfig, dataset_cfg: DatasetConfig, train_cfg: TrainConfig
 ):
@@ -197,7 +179,13 @@ def train_model(
     if train_cfg.export_onnx is not None:
         h, w = dataset_cfg.image_size
         dummy_input = torch.randn(1, 3, h, w)
-        model_export_onnx(model, dummy_input, train_cfg.export_onnx, to_mlflow=True)
+        model_export_onnx(
+            model,
+            dummy_input,
+            train_cfg.export_onnx,
+            to_mlflow=True,
+            mlflow_modl_uri_file=train_cfg.mlflow_model_uri_file,
+        )
 
     print(f"Model saved in {model_cfg.model_path}")
 
