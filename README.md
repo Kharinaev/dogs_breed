@@ -1,6 +1,6 @@
-# DL toolkit
+# Dogs Breed
 
-MLops course project with demonstration case
+MLOps course project with demonstration case
 
 ## Dogs breed classification
 
